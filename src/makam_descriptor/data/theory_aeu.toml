@@ -1,0 +1,135 @@
+# Makam Descriptor — theory layer, AEU (Arel-Ezgi-Uzdilek) system
+#
+# Status of everything in this file: POSTULATED. These are theoretical
+# definitions, not measurements. Every makam entry names its source system and
+# carries an empty reviewer list until a makam-trained musician has checked it.
+#
+# Units: Holdrian commas (1/53 octave, ~22.64 cents).
+# Pitch-class convention: notation pitch (bolahenk), çargah = C = 0, so that
+# comma positions match SymbTr's `Koma53 mod 53`.
+
+[meta]
+system = "AEU"
+version = "0.1.0"
+comma_per_octave = 53
+pitch_reference = "bolahenk notation; cargah (C) = 0, rast (G) = 31"
+
+# ---------------------------------------------------------------------------
+# Perdeler: name -> pitch class (mod 53). Octave-equivalent names share a
+# pitch class (rast/gerdaniye, dugah/muhayyer, ...). ASCII keys; display names
+# carry the Turkish spelling.
+# ---------------------------------------------------------------------------
+[perde]
+cargah      = { pc = 0,  display = "çargâh",     western = "C" }
+nim_hicaz   = { pc = 4,  display = "nîm hicâz",  western = "C#4" }
+hicaz       = { pc = 5,  display = "hicâz",      western = "Db4" }
+dik_hicaz   = { pc = 8,  display = "dik hicâz",  western = "Db1" }
+neva        = { pc = 9,  display = "nevâ",       western = "D" }
+nim_hisar   = { pc = 13, display = "nîm hisâr",  western = "Eb5" }
+hisar       = { pc = 14, display = "hisâr",      western = "Eb4" }
+dik_hisar   = { pc = 17, display = "dik hisâr",  western = "Eb1" }
+huseyni     = { pc = 18, display = "hüseynî",    western = "E" }
+acem        = { pc = 22, display = "acem",       western = "F" }
+dik_acem    = { pc = 23, display = "dik acem",   western = "F#1" }
+evic        = { pc = 26, display = "eviç",       western = "F#4" }
+mahur       = { pc = 27, display = "mâhur",      western = "F#5" }
+dik_mahur   = { pc = 30, display = "dik mâhur",  western = "Gb1" }
+rast        = { pc = 31, display = "rast",       western = "G" }
+nim_zirgule = { pc = 35, display = "nîm zirgüle", western = "G#4" }
+zirgule     = { pc = 36, display = "zirgüle",    western = "Ab4" }
+dik_zirgule = { pc = 39, display = "dik zirgüle", western = "Ab1" }
+dugah       = { pc = 40, display = "dügâh",      western = "A" }
+kurdi       = { pc = 44, display = "kürdî",      western = "Bb5" }
+dik_kurdi   = { pc = 45, display = "dik kürdî",  western = "Bb4" }
+segah       = { pc = 48, display = "segâh",      western = "Bb1" }
+buselik     = { pc = 49, display = "bûselik",    western = "B" }
+dik_buselik = { pc = 52, display = "dik bûselik", western = "Cb1" }
+
+# ---------------------------------------------------------------------------
+# Cinsler (tetrachords = 3 intervals, pentachords = 4 intervals), in commas.
+# ---------------------------------------------------------------------------
+[cins]
+rast_4     = { intervals = [9, 8, 5],     display = "rast dörtlüsü" }
+rast_5     = { intervals = [9, 8, 5, 9],  display = "rast beşlisi" }
+cargah_4   = { intervals = [9, 9, 4],     display = "çargâh dörtlüsü" }
+cargah_5   = { intervals = [9, 9, 4, 9],  display = "çargâh beşlisi" }
+buselik_4  = { intervals = [9, 4, 9],     display = "bûselik dörtlüsü" }
+buselik_5  = { intervals = [9, 4, 9, 9],  display = "bûselik beşlisi" }
+kurdi_4    = { intervals = [4, 9, 9],     display = "kürdî dörtlüsü" }
+kurdi_5    = { intervals = [4, 9, 9, 9],  display = "kürdî beşlisi" }
+ussak_4    = { intervals = [8, 5, 9],     display = "uşşak dörtlüsü" }
+huseyni_5  = { intervals = [8, 5, 9, 9],  display = "hüseynî beşlisi" }
+hicaz_4    = { intervals = [5, 12, 5],    display = "hicâz dörtlüsü" }
+hicaz_5    = { intervals = [5, 12, 5, 9], display = "hicâz beşlisi" }
+
+# ---------------------------------------------------------------------------
+# Makamlar. `dizi` is a list of cins placed consecutively from the karar; the
+# intervals must sum to 53. `guclu` and `seyir` are recorded now and used as
+# features in Phase 1. `variants` list pitches that practice or other sources
+# add; they are reported, never used silently for identification.
+# ---------------------------------------------------------------------------
+[makam.rast]
+display  = "Rast"
+karar    = "rast"
+dizi     = ["rast_5", "rast_4"]
+guclu    = "neva"
+seyir    = "ascending"
+source   = "AEU"
+reviewers = []
+
+[makam.mahur]
+display  = "Mâhur"
+karar    = "rast"
+dizi     = ["cargah_5", "cargah_4"]
+guclu    = "rast"            # gerdaniye, the octave of the karar
+seyir    = "descending"
+source   = "AEU"
+reviewers = []
+
+[makam.nihavent]
+display  = "Nihâvend"
+karar    = "rast"
+dizi     = ["buselik_5", "kurdi_4"]
+guclu    = "neva"
+seyir    = "both"
+source   = "AEU"
+reviewers = []
+variants = [{ name = "hicaz_on_neva", add = ["hisar", "evic"], note = "hicaz tetrachord on neva, common in practice" }]
+
+[makam.ussak]
+display  = "Uşşak"
+karar    = "dugah"
+dizi     = ["ussak_4", "buselik_5"]
+guclu    = "neva"
+seyir    = "ascending"
+source   = "AEU"
+reviewers = []
+
+[makam.huseyni]
+display  = "Hüseynî"
+karar    = "dugah"
+dizi     = ["huseyni_5", "ussak_4"]
+guclu    = "huseyni"
+seyir    = "both"
+source   = "AEU"
+reviewers = []
+variants = [{ name = "descending_acem", add = ["acem"], note = "acem instead of evic when descending (traditional descriptions)" }]
+
+[makam.hicaz]
+display  = "Hicâz"
+karar    = "dugah"
+dizi     = ["hicaz_4", "rast_5"]
+guclu    = "neva"
+seyir    = "ascending"
+source   = "AEU"
+reviewers = []
+
+[makam.buselik]
+display  = "Bûselik"
+karar    = "dugah"
+dizi     = ["buselik_5", "kurdi_4"]
+guclu    = "huseyni"
+seyir    = "both"
+source   = "AEU"
+reviewers = []
+variants = [{ name = "hicaz_on_huseyni", add = ["dik_acem", "nim_zirgule"], note = "hicaz tetrachord on hüseyni" }]
