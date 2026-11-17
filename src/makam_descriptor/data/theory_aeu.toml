@@ -8,9 +8,11 @@
 # Pitch-class convention: notation pitch (bolahenk), çargah = C = 0.
 #
 # These are AEU positions, so they are commensurate with SymbTr's `KomaAE`
-# column (mod 53). SymbTr's other pitch column, `Koma53`, follows performance
-# practice and sits one comma away from AEU on exactly the degrees that tell
-# these makams apart (uşşak's segâh, hüseynî's eviç). `symbtr_column` below
+# column (mod 53). SymbTr's other pitch column, `Koma53`, is an editorial
+# 53-TET respelling that depends on the makam (e.g. segâh one comma lower in
+# the uşşak family, not in rast); it sits one comma away from AEU on exactly
+# the degrees that tell these makams apart. It is not measured intonation.
+# `symbtr_column` below
 # names the column this theory is compared with.
 
 [meta]

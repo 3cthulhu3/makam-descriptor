@@ -168,7 +168,7 @@ def main(argv=None):
         per[mk]["karar_known"] += kk
         per[mk]["abstain_karar_known"] += c["abstain"] and kk
         if not c["abstain"]:
-            per[mk]["named_" + (c["top"] or "tie")] += 1
+            per[mk]["named_" + (c["top"] or ("conflict" if c.get("naming_conflict") else "tie"))] += 1
         unk_scores.append((c["in_theory_score"], kk))
         kf = key_find(m.abs_pcd)
         keys[mk][kf["key"]] += 1
@@ -208,7 +208,8 @@ def main(argv=None):
         cs = [compare(m, th, params) for k, _, m in known if k == mk]
         if not cs:
             continue
-        stolen = collections.Counter(c["top"] or "tie" for c in cs if not c["abstain"])
+        stolen = collections.Counter(c["top"] or ("conflict" if c.get("naming_conflict") else "tie")
+                                     for c in cs if not c["abstain"])
         lomo[mk] = {"n": len(cs), "flagged": sum(c["abstain"] for c in cs) / len(cs),
                     "absorbed_by": dict(stolen.most_common())}
     res["leave_one_makam_out"] = lomo

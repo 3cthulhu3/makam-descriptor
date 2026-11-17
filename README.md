@@ -2,97 +2,140 @@
 
 A culture-aware description tool for Turkish makam music, designed to be called by an LLM agent (the MML MIR Supertool). It describes a score in the tradition's own terms, at 53-comma resolution, and says so when a piece falls outside what it knows.
 
-Status: **v0.2, Phase 0.** Scores only (SymbTr `.txt`). Theory layer: 7 makams, AEU, unreviewed.
+Status: **v0.3, Phase 0.** Scores only (SymbTr `.txt`). Theory layer: 7 makams, AEU, **unreviewed**.
 
 ## Architecture
 
 | Layer | Module | Status of its content |
 | --- | --- | --- |
-| Theory | `data/theory_aeu.toml`, `theory.py` | **Postulated.** Makams composed from cins, validated on load (dizi = 53 commas, güçlü is a degree). Each entry names its source system and reviewers. The file also names the SymbTr pitch column written in its own system. |
-| Measurement | `measure.py`, `symbtr.py` | **Measured.** Karar = final note; duration-weighted 53-bin distribution relative to it. Every sounding note counts, ornamented or not. |
-| Consistency | `consistency.py` | **Derived.** Identification at exact comma positions on the dizi; abstention with ±1 comma slack on dizi + declared variants, threshold 0.90 (fixed before the first run, never tuned). |
+| Theory | `data/theory_aeu.toml`, `theory.py` | **Postulated.** Makams composed from cins, validated on load. Each entry names its source system and reviewers. Variants may declare the melodic direction in which they are used. The file names the SymbTr pitch column written in its own system. |
+| Measurement | `measure.py`, `symbtr.py` | **Measured.** Karar = final note; duration-weighted 53-bin distribution relative to it, also split by direction of departure (next note of a different pitch lower or higher). Every sounding note counts. |
+| Consistency | `consistency.py` | **Derived.** Ranking: exact comma positions on the dizi. Abstention: ±1 comma on dizi + declared variants (a directional variant counts only for notes moving in its direction), threshold 0.90, fixed before the first run and never tuned. Naming: only the best dizi fit may be named. |
 | Tool interface | `tool.py` | `describe(path)` → strict-JSON dict; `call_tool(arguments)` never raises; `TOOL_SPEC` for function calling. |
 | Baseline | `western.py` | Krumhansl–Kessler on the 53→12 projection, for side-by-side comparison. |
 
 ```bash
-pip install -e ".[dev]"
-python -m makam_descriptor path/to/SymbTr/txt/hicaz--sarki--....txt
-python eval/run_eval.py path/to/SymbTr/txt --unknown proposal    # or: frequency
+pip install -e ".[dev]"                     # optional: pytest and eval also run from a plain checkout
 pytest
+python -m makam_descriptor path/to/SymbTr/txt/hicaz--sarki--....txt
+python eval/run_eval.py path/to/SymbTr/txt                 # dev split, 'frequency' unknowns
+python eval/render_readme_tables.py                        # the tables below, from eval/{dev,test}/*.json
 ```
 
-`pytest` and `eval/run_eval.py` also run from a plain checkout, without the install.
+SymbTr is not included (CC BY-NC-SA). Clone it separately: `git clone https://github.com/MTG/SymbTr`. Figures below: SymbTr 2.4.3, commit `246bbe3`; the tool reads all 2200 scores without error.
 
-SymbTr is not included (CC BY-NC-SA). Clone it separately: `git clone https://github.com/MTG/SymbTr`. The figures below are from SymbTr 2.4.3 (commit `246bbe3`), all 2200 scores of which the tool reads without error.
+## Data protocol
+
+From v0.3 on, SymbTr is split **by composer** into dev and test (`eval/make_split.py`, manifest `eval/split_v1.json`): a composer, or for anonymous pieces a piece name, goes to test iff a salted SHA-256 of its name falls below 0.30. The rule was fixed before any result on the split was seen; nothing is stratified or hand-picked. 1604 dev / 596 test scores. Whole composers are held out, so test also measures transfer to unseen composers.
+
+Development and every decision use dev (`--split dev`, the default). Test is opened once per release. For v0.3 it was opened once, for v0.2 and v0.3 together, after all v0.3 changes were committed.
+
+Everything before v0.3 (v0.1, v0.2 and their ablations in `eval/v0.1/`, `eval/v0.2/`, `eval/ablation/`) was developed and evaluated on all of SymbTr. Those numbers are kept for the history, not as held-out results.
 
 ## What the output means
 
 - `abstain: true` — no applicable makam covers the piece. Name nothing.
-- `top_makam` — the single best fit among the makams that cover the piece; `null` on an exact tie.
-- `ambiguous: true` — more than one candidate within the margin. The pitch content does not decide; report all of `makam_candidates`.
-- `accepted_via_variants: true` — the piece leaves the dizi and stays inside a variant the theory declares (see `fits[].variants`).
+- `top_makam` — the best dizi fit, if what the theory says about it covers the piece. `null` on an exact tie or a naming conflict.
+- `naming_conflict: true` — the best dizi fit is not covered by its own theory entry, while another makam is. Neither is named; both are in `makam_candidates`.
+- `ambiguous: true` — more than one candidate. The pitch content does not decide; report all of `makam_candidates`.
+- `accepted_via_variants: true` — the named makam covers the piece only with a declared variant; `fits[].variant_in_declared_direction` says how much of the variant's weight moves in the direction the theory declares.
 
-## Results (v0.2, 751 scores in 7 known makams)
+For an agent, the figure that matters most is **named wrong, unflagged**: a single makam named, no ambiguity signal, and wrong.
 
-Ranking, regardless of abstention: top-1 **87.9 %**, exact tie at the top 2.7 % (counted as a miss), true makam in the candidate set **96.9 %** (mean set size 1.21).
+## Results (v0.3)
 
-What the tool asserts: abstains on **2.4 %** of known-makam pieces, names the right makam for **86.4 %**, a wrong one for **8.5 %**, and leaves the rest as a tie.
+`n` = known / `frequency` unknowns / `proposal` unknowns. `frequency` is the nine most frequent SymbTr makams outside the theory, unselected; `proposal` is the six behind the original proposal's figures, all of which differ from every known makam in their dizi.
 
-| Makam | n | top-1 | tie | in set | abstains | named right | named wrong |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| rast | 109 | 99.1 % | 0 % | 99.1 % | 2.8 % | 96.3 % | 0.9 % |
-| mâhur | 88 | 94.3 % | 0 % | 97.7 % | 4.5 % | 86.4 % | 9.1 % |
-| nihâvend | 130 | 97.7 % | 0 % | 97.7 % | 2.3 % | 96.9 % | 0.8 % |
-| uşşak | 118 | **62.7 %** | 12.7 % | 97.5 % | 0.8 % | 61.9 % | 24.6 % |
-| hüseynî | 92 | **64.1 %** | 5.4 % | 89.1 % | 3.3 % | 66.3 % | 25.0 % |
-| hicâz | 157 | 98.7 % | 0 % | 99.4 % | 1.3 % | 98.1 % | 0.6 % |
-| bûselik | 57 | 94.7 % | 0 % | 94.7 % | 3.5 % | 94.7 % | 1.8 % |
+| Split | Rules | named right | named wrong | …of which unflagged | naming conflict | abstains, known | abstains, `frequency` | AUROC | abstains, `proposal` | AUROC |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| dev (n = 522 / 461 / 316) | v0.2 | 86.6 % | 8.2 % | 2.5 % | 0.0 % | 2.5 % | 70.7 % | 0.866 | 89.6 % | 0.984 |
+| dev (n = 522 / 461 / 316) | + naming rule | 86.2 % | 7.7 % | 1.9 % | 1.0 % | 2.5 % | 70.7 % | 0.866 | 89.6 % | 0.984 |
+| dev (n = 522 / 461 / 316) | + direction = v0.3 | 86.2 % | 7.7 % | 1.9 % | 0.8 % | 2.7 % | 70.9 % | 0.879 | 89.9 % | 0.983 |
+| test (n = 229 / 187 / 140) | v0.2 | 86.0 % | 9.2 % | 3.1 % | 0.0 % | 2.2 % | 74.3 % | 0.918 | 84.3 % | 0.983 |
+| test (n = 229 / 187 / 140) | + direction = v0.3 | 85.6 % | 7.9 % | 1.7 % | 1.3 % | 2.6 % | 76.5 % | 0.921 | 87.1 % | 0.980 |
 
-The aggregate hides the weak spot: **uşşak and hüseynî are told apart about two times in three.** Their dizi differ in one degree (acem / eviç) and both makams use both pitches. A quarter of these pieces (52 of 210) get a wrong `top_makam`. In 40 of those 52 `ambiguous` is set and the true makam is among the candidates; in 12 it is named wrongly with no warning.
+Scale of the test differences: one known piece is 0.44 points, one `frequency` unknown 0.53. The v0.2 → v0.3 change on test (named wrong 21 → 18, unflagged 7 → 4, `frequency` flagged 139 → 143) is in the expected direction and small. Ranking top-1 is 87.9 % on dev and 87.8 % on test: the tool has no fitted parameters, and it transfers to unseen composers without loss.
 
-Abstention depends strongly on which makams count as "unknown":
+Per makam, test:
 
-| Unknown set | n | Abstain | Abstain, karar known | AUROC | AUROC, karar known | AUROC, Western r |
-| --- | --- | --- | --- | --- | --- | --- |
-| `proposal`: hüzzam, segâh, hicazkâr, kürdîlihicazkâr, sabâ, karcığar | 456 | 87.9 % | 78.6 % (n = 257) | 0.984 | 0.976 | 0.709 |
-| `frequency`: the 9 most frequent makams outside the theory, unselected | 648 | 71.8 % | 52.5 % (n = 385) | 0.881 | 0.804 | 0.644 |
+| Makam | n | top-1 | tie | in set | abstains | named right | named wrong | …unflagged |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| rast | 34 | 97.1 % | 0.0 % | 97.1 % | 5.9 % | 91.2 % | 2.9 % | 2.9 % |
+| mâhur | 21 | 95.2 % | 0.0 % | 100.0 % | 0.0 % | 85.7 % | 4.8 % | 0.0 % |
+| nihâvend | 43 | 100.0 % | 0.0 % | 100.0 % | 0.0 % | 100.0 % | 0.0 % | 0.0 % |
+| uşşak | 33 | 57.6 % | 18.2 % | 93.9 % | 3.0 % | 57.6 % | 21.2 % | 3.0 % |
+| hüseynî | 30 | 66.7 % | 0.0 % | 90.0 % | 3.3 % | 66.7 % | 26.7 % | 6.7 % |
+| hicâz | 47 | 97.9 % | 0.0 % | 97.9 % | 2.1 % | 95.7 % | 2.1 % | 0.0 % |
+| bûselik | 21 | 95.2 % | 0.0 % | 95.2 % | 4.8 % | 95.2 % | 0.0 % | 0.0 % |
 
-"Western r" uses the key-profile correlation as a novelty score. That correlation was never meant for the job, so read the column as "what a Western tool offers for this question", not as a competitor tuned to it.
+| Unknown makam | n | flagged | karar known | named as |
+| --- | --- | --- | --- | --- |
+| hüzzam | 25 | 100.0 % | 0 | — |
+| segâh | 28 | 100.0 % | 0 | — |
+| hicazkâr | 22 | 100.0 % | 21 | — |
+| kürdîlihicazkâr | 25 | 80.0 % | 24 | nihâvend 5 |
+| muhayyer | 15 | 0.0 % | 15 | hüseynî 11, uşşak 3, tie 1 |
+| sabâ | 25 | 84.0 % | 25 | conflict 2, uşşak 2 |
+| acemaşîrân | 20 | 100.0 % | 0 | — |
+| bayâtî | 12 | 8.3 % | 11 | uşşak 6, hüseynî 3, conflict 1, bûselik 1 |
+| karcığar | 15 | 40.0 % | 15 | hüseynî 6, tie 1, bûselik 1, conflict 1 |
 
-Where unknown pieces get named anyway (`frequency` set): muhayyer is never flagged (0 %; named hüseynî 48, uşşak 14 of 67) and bayâtî almost never (1.6 %; named uşşak 48 of 62). Their dizi coincide with hüseynî and uşşak; they differ in seyir. Karcığar is flagged 62 % of the time (16 of 53 named hüseynî), kürdîlihicazkâr 70 % (20 of 70 named nihâvend), sabâ 82 %. Hüzzam, segâh and acemaşîrân are always flagged, but only because their karar is not in the theory. **A pitch-distribution tool can detect novelty in the scale, not in melodic behaviour.** Phase 1's güçlü and seyir features are meant to close this.
+Leave-one-makam-out, test: nihâvend 100 %, hicâz 98 %, hüseynî 20 %, bûselik 10 %, rast 6 %, uşşak 3 %, mâhur 0 %.
 
-Leave-one-makam-out (remove a makam from the theory, check its pieces are flagged): nihâvend 99 %, hicâz 96 %; hüseynî 20 %, rast 9 % (absorbed by mâhur), bûselik 7 %, mâhur 5 % (absorbed by rast), uşşak 1 % (absorbed by hüseynî). A makam with a one-comma neighbour in the theory is absorbed, not flagged.
+### What these numbers say
 
-## What changed since v0.1, and what it did to the numbers
+1. **Uşşak and hüseynî are told apart about two times in three.** Their dizi differ in one degree (acem / eviç), and both makams use both pitches. This is the tool's largest error mass and the main source of wrong names. Pitch content cannot fix it; the güçlü can (hüseynî/nevâ duration ratio, median 1.24 in hüseynî against 0.50 in uşşak, all of SymbTr).
+2. **Novelty in the scale is detected, novelty in melodic behaviour is not.** Muhayyer and bayâtî have the dizi of hüseynî and uşşak and differ in seyir; they are almost never flagged. On dev, 135 unknown pieces were accepted: 119 on a dizi alone, which no variant rule can touch, and 16 only through a variant.
+3. **A makam with a one-comma neighbour in the theory is absorbed, not flagged** (rast ↔ mâhur, uşşak ↔ hüseynî ↔ bûselik). The abstention claim holds for makams whose scale is new to the theory, not in general.
+4. The "Western r" AUROC column of earlier versions is dropped from the headline: a key-profile correlation was never meant as a novelty score. It is still in the JSON (`auroc_western_correlation`).
 
-Three things in v0.1 were wrong, and one decision was made after seeing its results. The table applies them one at a time; every row is reproducible (`eval/v0.1/`, `eval/ablation/`, `eval/results_*.json`).
+## History
+
+### v0.2 → v0.3
+
+1. **Naming rule.** In v0.2 a makam was named from among those whose coverage (dizi + declared variants) passed the threshold. Variants declared for one makam could then take pieces from a neighbour that declares none: on all of SymbTr, 9 pieces were named differently from their best dizi fit, 4 of them mâhur pieces named rast through rast's acem variant; 3 of the 9 names were right, against 5 for the best fit. Coverage now decides *whether* a makam may be named, never *which*; a conflict yields `top_makam: null` and both candidates.
+2. **Direction-conditioned variants.** The theory's `descending_acem` variants (rast, hüseynî, hicâz) are now applied only to notes that depart downward. Checked on dev only: acem departs downward in 87 % (hicâz), 93 % (rast) and 86 % (hüseynî) of its duration; eviç, the dizi degree beside it, in 38–44 %. The textbook rule is borne out, and the variant is now a claim a piece can contradict. Its effect on the aggregate is small: of the 16 dev unknowns accepted through a variant, 12 pass through nihâvend's and bûselik's leading-tone variants, which stay direction-free (see the reviewer questions).
+3. **Evaluation.** Dev/test split; `--unknown` defaults to the unselected `frequency` set; the script always evaluates the checkout it lives in (before, an installed older version silently took precedence); AUROC quantises scores to 1e-9 (in v0.2, 45 of the 412 fully covered SymbTr scores came out as 1 ± 2·10⁻¹⁶ depending on summation order, and AUROC broke ties on that; effect up to 0.003).
+
+`Params(name_best_fit_only=False, variant_direction=False)` and `--v02-naming --no-direction` restore v0.2.
+
+### v0.1 → v0.2 (all of SymbTr, pre-split)
 
 | Stage | top-1 | tie at top | abstains, known | named right | abstains, `proposal` | AUROC | abstains, `frequency` | AUROC |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | v0.1 as shipped | 85.6 % | not counted | 13.2 % | 74.4 % | 94.5 % | 0.964 | 77.2 % | 0.862 |
-| 1. reader fixed, ties counted (`--pitch-column Koma53 --no-variants`) | 74.6 % | 17.2 % | 12.9 % | 72.8 % | 93.9 % | 0.965 | 76.7 % | 0.862 |
-| 2. pitch column of the theory's own system (`--no-variants`) | 87.9 % | 2.7 % | 12.6 % | 77.1 % | 92.8 % | 0.962 | 75.5 % | 0.856 |
-| 3. declared variants count for abstention; acem variants for rast and hicâz (default) | 87.9 % | 2.7 % | 2.4 % | 86.4 % | 87.9 % | 0.984 | 71.8 % | 0.881 |
+| 1. reader fixed, ties counted | 74.6 % | 17.2 % | 12.9 % | 72.8 % | 93.9 % | 0.965 | 76.7 % | 0.862 |
+| 2. pitch column of the theory's own system | 87.9 % | 2.7 % | 12.6 % | 77.1 % | 92.8 % | 0.962 | 75.5 % | 0.856 |
+| 3. declared variants count for abstention; acem variants for rast and hicâz | 87.9 % | 2.7 % | 2.4 % | 86.4 % | 87.9 % | 0.984 | 71.8 % | 0.881 |
 
-1. **Ties were decided by the order of the TOML file.** When two makams fitted equally, v0.1 named whichever was listed first. On SymbTr 129 of the 751 known pieces (17 %) were tied at the top, and 82 of v0.1's 643 top-1 hits were such ties, every one of them an uşşak piece tied with bûselik or hüseynî and listed first: uşşak's reported 84.7 % was 15.3 % won and 69.5 % tied. A tie now yields `top_makam: null` and counts as a miss. The reader also skipped ornamented notes (trill, tremolo, mordent, ...; 2.8 % of all sounding notes). That moved the numbers only slightly, and in the 6 scores that end on an ornamented note the karar happened to come out the same.
-2. **The theory was AEU and the measurement was not.** SymbTr has two pitch columns: `KomaAE` (AEU notation) and `Koma53` (53-TET, following practice). v0.1 read `Koma53`, where uşşak's segâh and hüseynî's eviç sit one comma away from their AEU positions, so "identification at exact comma positions" could not see the very degrees that separate these makams. That is where the ties came from, and why hüseynî's top-1 was 18.5 %. The theory file now names its column and the tool reads that one.
-3. **The tool abstained on pieces that used its own declared variants.** 17 of the 19 nihâvend abstentions (with the right karar) were pieces with the eviç leading tone the theory itself lists. Variants now count for abstention, and never for the ranking. In the same step two variants were added to the theory, `descending_acem` for rast and for hicâz: in the 42 hicâz abstentions acem carried on average 8.8 % of the piece, and no other off-scale perde more than 1.3 %.
+1. v0.1 broke ties by the order of the TOML file: 82 of its 643 top-1 hits were uşşak pieces tied with bûselik or hüseynî and listed first. It also skipped ornamented notes (2.8 % of sounding notes).
+2. v0.1 compared AEU theory with SymbTr's `Koma53` column. See the next section for what that column is.
+3. Taken after seeing v0.1's results, on the data it was evaluated on: a judgement, not a bug fix.
 
-Step 3 is a judgement, not a bug fix, and it was taken after looking at v0.1's results, on the same data it is evaluated on. It costs detection at the fixed threshold (87.9 % of `proposal` unknowns flagged, down from 92.8 %) and buys fewer false abstentions (2.4 %, down from 12.6 %); the threshold-free AUROC improves. `Params(variants_in_abstention=False)` restores the old rule. The 0.90 threshold itself has not been touched.
+## About SymbTr's two pitch columns
+
+SymbTr gives every note twice: `KomaAE`, the AEU notation, and `Koma53`, a 53-TET respelling. They differ on 65 666 notes. The difference is **conditioned on the makam**: the AEU segâh (`B4b1`) is written one comma lower in `Koma53` in 88 % of its occurrences in uşşak, 87 % in hüseynî, 88 % in bayâtî, 84 % in muhayyer and 88 % in sabâ, but in 2 % in rast, 1 % in segâh and 1 % in hüzzam. That matches the performance knowledge that segâh sits lower in the uşşak family. But it is an editor's respelling made knowing the makam, not a measurement of intonation.
+
+Consequences:
+
+- Reading `Koma53` lets a tool partly read the editor's knowledge of the label. The tool reads `KomaAE`, the column in its theory's own system.
+- `Koma53` is not a route to performed intonation; recordings are (Phase 2).
+- Even on `KomaAE`, a score's perde choices are the composer's: on scores "the comma is the makam" partly means "the notated perde is the makam". Score-level accuracy is an upper bound for what audio will give.
 
 ## Known limits
 
-- Karar from the last note only (it is the theory's karar in 98.4 % of known-makam pieces); no geçki (modulation) handling.
-- Uşşak vs hüseynî is decided in emphasis, not scale (hüseynî/nevâ duration ratio, median 1.24 vs 0.50); not yet a feature. Güçlü emphasis is reported per fit but not used, and cannot be measured for mâhur, whose güçlü is the octave of its karar.
-- The comparison is AEU notation against AEU theory. It says nothing about intonation in performance, which is what `Koma53` approximates and what a second theory layer would have to address.
-- Labels come from SymbTr file names.
-- AEU is one theory among several; the theory layer is plural by design but holds only AEU so far.
+- Karar from the last note only (the theory's karar in 98.5 % of known-makam pieces on dev); no geçki (modulation) handling. `measure.windows()` exists but is unused.
+- Güçlü emphasis is reported per fit but not used; it cannot be measured for mâhur, whose güçlü is the octave of its karar.
+- Labels come from SymbTr file names; the `hicaz` label also covers hümâyun-like pieces.
+- Calibration and agent benefit (questions 3 and 4 of the proposal's evaluation plan) are not measured yet.
+- AEU is one theory among several; the theory layer is plural by design but holds only AEU.
 
 ## Questions for the theory reviewer
 
 - Hicâz with descending acem is the hümâyun dizi. One entry with a variant (as now), or two makams?
-- `seyir` is recorded as ascending for hicâz and as both for bûselik; common descriptions differ on both. It is not used yet, but should be right before Phase 1 uses it.
-- The two acem variants added in v0.2 follow the rule already used for hüseynî; they are as unreviewed as the rest.
+- Nihâvend's eviç and bûselik's nîm zirgüle are declared as variants without a direction. On dev they depart upward in 69 % and 80 % of their duration, as leading tones would. Should they be declared ascending? (Not done: it would be a theory edit driven by the data it is evaluated on.)
+- `seyir` is recorded as ascending for hicâz and as both for bûselik; common descriptions differ. Not used yet, but should be right before Phase 1 uses it.
+- The three `descending_acem` variants and the two leading-tone variants are as unreviewed as the rest.
 
 ## Licence
 
