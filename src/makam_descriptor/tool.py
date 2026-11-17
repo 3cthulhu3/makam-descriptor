@@ -42,6 +42,7 @@ def describe_notes(notes, theory: Theory | None = None, params: Params = Params(
         "makam_candidates": c["candidates"],
         "top_makam": c["top"],
         "ambiguous": len(c["candidates"]) > 1,
+        "naming_conflict": c["naming_conflict"],
         "accepted_via_variants": c["accepted_via_variants"],
         "fits": [
             {"makam": f.makam, "display": th.makams[f.makam].display,
@@ -115,6 +116,8 @@ TOOL_SPEC = {
         "the piece outside every known scale, and an explicit abstain flag. If abstain "
         "is true, do not name a makam. If ambiguous is true, or top_makam is null, the "
         "pitch content does not decide between the candidates: name them all, not one. "
+        "naming_conflict means the best-fitting makam is not covered by its own theory "
+        "entry while another candidate is; treat it as ambiguous. "
         "The tool compares pitch content only; it cannot tell apart makams that share a "
         "scale and differ in melodic progression (seyir). Also returns a Western "
         "key-finder answer on the same input for comparison; that answer is computed "

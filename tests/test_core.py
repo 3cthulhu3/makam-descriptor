@@ -141,3 +141,33 @@ def test_malformed_theory_raises_theory_error(tmp_path, text):
 
 def test_theory_names_its_symbtr_column():
     assert TH.symbtr_column == "KomaAE" and TH.without("rast").symbtr_column == "KomaAE"
+
+
+def mahur_with_descending_acem(acem_share=0.12):
+    """Mâhur material plus acem resolving downward (gerdaniye -> acem -> hüseyni).
+
+    Mâhur fits best on the dizi but declares no acem variant; rast declares one.
+    """
+    base = 6 * 53 + RAST_PC
+    body = [Note(base + d, 0.25) for d in sorted(TH.makams["mahur"].degrees)] * 8
+    body_dur = sum(n.duration for n in body)
+    k = max(1, round(acem_share * body_dur / (1 - acem_share) / 0.25))
+    fig = []
+    for _ in range(k):
+        fig += [Note(base + 53, 0.0625), Note(base + 44, 0.25), Note(base + 40, 0.0625)]
+    return body + fig + [Note(base, 0.25)]
+
+
+def test_coverage_never_decides_which_makam_is_named():
+    m = measure(mahur_with_descending_acem())
+    old = compare(m, TH, Params(name_best_fit_only=False))
+    new = compare(m, TH)
+    assert new["fits"][0].makam == "mahur"
+    assert old["top"] == "rast"                    # the 0.2 behaviour: neighbour takes the piece
+    assert new["top"] is None and new["naming_conflict"] and not new["abstain"]
+    assert new["candidates"][0] == "mahur" and "rast" in new["candidates"]
+
+
+def test_naming_conflict_reaches_the_tool_output():
+    out = describe_notes(mahur_with_descending_acem())
+    assert out["naming_conflict"] and out["ambiguous"] and out["top_makam"] is None

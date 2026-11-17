@@ -6,6 +6,13 @@ Two resolutions, on purpose:
   * abstention with ONE comma of slack, on the dizi plus the variants the
     theory declares (a piece is "outside the theory" only if it leaves
     everything the theory says about every applicable makam, even then).
+
+Naming (0.3): only the makam whose dizi fits best may be named. Coverage
+decides *whether* a makam may be named, never *which*: if the best-fitting
+makam is not covered by what the theory says about it, while another makam
+is, the tool names neither and reports both (`naming_conflict`). In 0.2 the
+covered makam was named instead, so variants declared for one makam (acem in
+rast) could take pieces from its neighbour (mâhur), which declares none.
 """
 from __future__ import annotations
 
@@ -25,6 +32,7 @@ class Params:
     abstain_tolerance: int = 1        # commas
     candidate_margin: float = 0.05    # candidates: exact fit within this of the best
     variants_in_abstention: bool = True   # False restores the v0.1 rule (dizi only)
+    name_best_fit_only: bool = True       # False restores the v0.2 naming rule
 
 
 def share_on(pcd: np.ndarray, degrees: frozenset[int], tolerance: int = 0) -> float:
@@ -95,13 +103,29 @@ def compare(m: Measurement, theory: Theory, params: Params = Params()) -> dict:
     def within_margin(fs: list[Fit]) -> list[str]:
         return [f.makam for f in fs if f.exact >= fs[0].exact - params.candidate_margin]
 
+    accepted_names = {f.makam for f in accepted}
+    conflict = False
+    if not accepted:
+        top, candidates = None, []
+    elif params.name_best_fit_only and fits[0].makam not in accepted_names:
+        # The best dizi fit is not covered by its own theory; another makam is.
+        conflict = True
+        best_group = {f.makam for f in fits if f.exact >= fits[0].exact - _EPS}
+        top = None
+        candidates = [f.makam for f in fits if f.makam in best_group or f.makam in accepted_names]
+    else:
+        top = _top(accepted)
+        candidates = within_margin(accepted)
+    top_fit = next((f for f in fits if f.makam == top), None)
+
     return {
         "fits": fits,
-        # What the tool asserts: nothing when it abstains, no single makam on a tie.
-        "candidates": within_margin(accepted),
-        "top": _top(accepted),
-        "tie": bool(accepted) and _top(accepted) is None,
-        "accepted_via_variants": bool(accepted) and accepted[0].tolerant < params.abstain_threshold - _EPS,
+        # What the tool asserts: nothing when it abstains, no single makam on a tie or a conflict.
+        "candidates": candidates,
+        "top": top,
+        "tie": bool(accepted) and not conflict and top is None,
+        "naming_conflict": conflict,
+        "accepted_via_variants": top_fit is not None and top_fit.tolerant < params.abstain_threshold - _EPS,
         # What the ranking says regardless of abstention (for evaluation only).
         "ranked_candidates": within_margin(fits),
         "ranked_top": _top(fits),
