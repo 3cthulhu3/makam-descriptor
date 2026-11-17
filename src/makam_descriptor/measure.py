@@ -3,6 +3,12 @@
 Outputs are *measured*: the karar (estimated as the final note, following
 Atlı, Bozkurt & Şentürk 2015 for scores) and a duration-weighted distribution
 over the 53 comma positions relative to that karar.
+
+Since 0.3 the distribution is also split by direction of departure: a note
+"departs downward" if the next note of a different pitch is lower, "upward" if
+higher; repeated notes take the direction of the run they belong to, and the
+final run departs nowhere. pcd_down + pcd_up <= pcd, all normalised by the
+same total duration.
 """
 from __future__ import annotations
 
@@ -23,6 +29,8 @@ class Measurement:
     abs_pcd: np.ndarray        # shape (53,), absolute pitch classes, sums to 1
     total_duration: float
     n_notes: int
+    pcd_down: np.ndarray | None = None   # shape (53,), relative to karar, departing downward
+    pcd_up: np.ndarray | None = None     # shape (53,), relative to karar, departing upward
 
 
 class MeasurementError(ValueError):
@@ -42,7 +50,17 @@ def measure(notes: tuple[Note, ...] | list[Note]) -> Measurement:
     total = abs_hist.sum()
     abs_pcd = abs_hist / total
     rel = np.roll(abs_pcd, -karar_pc)   # rel[i] = weight at karar + i
-    return Measurement(karar, karar_pc, rel, abs_pcd, float(total), len(notes))
+
+    down, up = np.zeros(COMMAS), np.zeros(COMMAS)
+    nxt = None                            # next pitch different from the current run
+    for i in range(len(notes) - 1, -1, -1):
+        k = notes[i].koma53
+        if i + 1 < len(notes) and notes[i + 1].koma53 != k:
+            nxt = notes[i + 1].koma53
+        if nxt is not None:
+            (down if nxt < k else up)[(k - karar_pc) % COMMAS] += notes[i].duration
+    return Measurement(karar, karar_pc, rel, abs_pcd, float(total), len(notes),
+                       down / total, up / total)
 
 
 def windows(notes: list[Note] | tuple[Note, ...], length: float, hop: float):

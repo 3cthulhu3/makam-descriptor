@@ -50,6 +50,7 @@ def describe_notes(notes, theory: Theory | None = None, params: Params = Params(
              "share_within_1_comma": round(f.tolerant, 3),
              "share_within_1_comma_with_variants": round(f.coverage, 3),
              "variants": {k: round(v, 3) for k, v in f.variants.items()},
+             "variant_in_declared_direction": {k: _r(v, 3) for k, v in (f.variant_in_direction or {}).items()},
              "guclu": th.perde[th.makams[f.makam].guclu_perde].get("display", th.makams[f.makam].guclu_perde),
              "guclu_emphasis": _r(f.guclu_emphasis, 2)}
             for f in c["fits"]

@@ -15,7 +15,7 @@
 
 [meta]
 system = "AEU"
-version = "0.2.0"
+version = "0.3.0"
 comma_per_octave = 53
 symbtr_column = "KomaAE"
 pitch_reference = "bolahenk notation; cargah (C) = 0, rast (G) = 31"
@@ -72,7 +72,10 @@ hicaz_5    = { intervals = [5, 12, 5, 9], display = "hicâz beşlisi" }
 # Makamlar. `dizi` is a list of cins placed consecutively from the karar; the
 # intervals must sum to 53. `guclu` and `seyir` are recorded now and used as
 # features in Phase 1. `variants` list pitches that practice or other sources
-# add. They never enter the ranking (identification is on the dizi alone), but
+# add, optionally with the melodic `direction` ("ascending", "descending",
+# "any"; default "any") in which they are used. Since 0.3 a directional variant
+# covers a note only if the note departs in that direction (next different
+# pitch lower for "descending"). They never enter the ranking, but
 # a piece that stays inside dizi + variants is not "outside the theory", so
 # they do count for abstention, and the output says which variant was needed.
 #
@@ -90,7 +93,7 @@ guclu    = "neva"
 seyir    = "ascending"
 source   = "AEU"
 reviewers = []
-variants = [{ name = "descending_acem", add = ["acem"], note = "acem instead of evic when descending (acemli rast: buselik tetrachord on neva)" }]
+variants = [{ name = "descending_acem", add = ["acem"], direction = "descending", note = "acem instead of evic when descending (acemli rast: buselik tetrachord on neva)" }]
 
 [makam.mahur]
 display  = "Mâhur"
@@ -128,7 +131,7 @@ guclu    = "huseyni"
 seyir    = "both"
 source   = "AEU"
 reviewers = []
-variants = [{ name = "descending_acem", add = ["acem"], note = "acem instead of evic when descending (traditional descriptions)" }]
+variants = [{ name = "descending_acem", add = ["acem"], direction = "descending", note = "acem instead of evic when descending (traditional descriptions)" }]
 
 [makam.hicaz]
 display  = "Hicâz"
@@ -138,7 +141,7 @@ guclu    = "neva"
 seyir    = "ascending"
 source   = "AEU"
 reviewers = []
-variants = [{ name = "descending_acem", add = ["acem"], note = "acem instead of evic when descending (buselik pentachord on neva, the humayun dizi)" }]
+variants = [{ name = "descending_acem", add = ["acem"], direction = "descending", note = "acem instead of evic when descending (buselik pentachord on neva, the humayun dizi)" }]
 
 [makam.buselik]
 display  = "Bûselik"

@@ -171,3 +171,40 @@ def test_coverage_never_decides_which_makam_is_named():
 def test_naming_conflict_reaches_the_tool_output():
     out = describe_notes(mahur_with_descending_acem())
     assert out["naming_conflict"] and out["ambiguous"] and out["top_makam"] is None
+
+
+def test_direction_split_of_the_distribution():
+    b = 6 * 53 + DUGAH_PC
+    notes = [Note(b + 31, 1), Note(b + 35, 1), Note(b + 35, 1), Note(b + 39, 1),   # acem departs up
+             Note(b + 35, 1), Note(b + 31, 1), Note(b, 1)]                        # acem departs down
+    m = measure(notes)
+    assert m.pcd_up[35] == pytest.approx(2 / 7) and m.pcd_down[35] == pytest.approx(1 / 7)
+    assert m.pcd_down[0] == 0 and m.pcd_up[0] == 0                                # final note departs nowhere
+    assert (m.pcd_down + m.pcd_up <= m.pcd + 1e-12).all()
+
+
+def hicaz_with_acem(direction, share=0.12):
+    b = 6 * 53 + DUGAH_PC
+    body = [Note(b + d, 0.25) for d in sorted(TH.makams["hicaz"].degrees)] * 8
+    body_dur = sum(n.duration for n in body)
+    k = max(1, round(share * body_dur / (1 - share) / 0.25))
+    nxt = 31 if direction == "down" else 39
+    fig = [n for _ in range(k) for n in (Note(b + 35, 0.25), Note(b + nxt, 0.0001))]
+    return body + fig + [Note(b, 0.25)]
+
+
+def test_descending_variant_covers_descending_use_only():
+    down = compare(measure(hicaz_with_acem("down")), TH)
+    up = compare(measure(hicaz_with_acem("up")), TH)
+    assert not down["abstain"] and down["top"] == "hicaz" and down["accepted_via_variants"]
+    assert up["abstain"]
+    undirected = compare(measure(hicaz_with_acem("up")), TH, Params(variant_direction=False))
+    assert not undirected["abstain"]                     # the 0.2 rule accepts it
+
+
+def test_variant_direction_is_validated(tmp_path):
+    bad = tmp_path / "bad.toml"
+    src = load_theory.__globals__["resources"].files("makam_descriptor.data").joinpath("theory_aeu.toml").read_text("utf-8")
+    bad.write_text(src.replace('direction = "descending"', 'direction = "sideways"', 1), encoding="utf-8")
+    with pytest.raises(TheoryError):
+        load_theory(bad)

@@ -33,14 +33,56 @@ class Params:
     candidate_margin: float = 0.05    # candidates: exact fit within this of the best
     variants_in_abstention: bool = True   # False restores the v0.1 rule (dizi only)
     name_best_fit_only: bool = True       # False restores the v0.2 naming rule
+    variant_direction: bool = True        # False: variants count in any direction (v0.2)
 
 
-def share_on(pcd: np.ndarray, degrees: frozenset[int], tolerance: int = 0) -> float:
+def _mask(degrees, tolerance: int = 0) -> np.ndarray:
     mask = np.zeros(COMMAS, dtype=bool)
     for d in degrees:
         for t in range(-tolerance, tolerance + 1):
             mask[(d + t) % COMMAS] = True
-    return float(pcd[mask].sum())
+    return mask
+
+
+def share_on(pcd: np.ndarray, degrees: frozenset[int], tolerance: int = 0) -> float:
+    return float(pcd[_mask(degrees, tolerance)].sum())
+
+
+def _directional(m: Measurement, direction: str, use_direction: bool) -> np.ndarray:
+    if not use_direction or direction == "any" or m.pcd_down is None:
+        return m.pcd
+    return m.pcd_down if direction == "descending" else m.pcd_up
+
+
+def coverage(m: Measurement, mk: Makam, tolerance: int, params: "Params") -> float:
+    """Share of the piece inside what the theory says about `mk`, within `tolerance`.
+
+    Dizi positions count whatever the melody does there. A variant's extra
+    positions count only for notes moving in the variant's declared direction
+    (when params.variant_direction), so 'acem when descending' is a claim the
+    piece can contradict.
+    """
+    base = _mask(mk.degrees, tolerance)
+    total = float(m.pcd[base].sum())
+    if not params.variants_in_abstention:
+        return total
+    taken = base.copy()
+    for v in mk.variants:
+        extra = _mask(v.add, tolerance) & ~taken
+        total += float(_directional(m, v.direction, params.variant_direction)[extra].sum())
+        taken |= extra
+    return total
+
+
+def variant_direction_share(m: Measurement, mk: Makam, tolerance: int) -> dict[str, float | None]:
+    """For each variant: the share of its off-dizi weight that moves in its declared direction."""
+    out: dict[str, float | None] = {}
+    base = _mask(mk.degrees, tolerance)
+    for v in mk.variants:
+        extra = _mask(v.add, tolerance) & ~base
+        w = float(m.pcd[extra].sum())
+        out[v.name] = None if w <= 0 else float(_directional(m, v.direction, True)[extra].sum()) / w
+    return out
 
 
 def guclu_emphasis(pcd: np.ndarray, makam: Makam) -> float | None:
@@ -65,6 +107,7 @@ class Fit:
     coverage: float              # the same, dizi + declared variants (abstention)
     variants: dict[str, float]   # exact share on dizi + that one variant
     guclu_emphasis: float | None
+    variant_in_direction: dict[str, float | None] | None = None
 
 
 def _top(fits: list[Fit]) -> str | None:
@@ -81,9 +124,10 @@ def compare(m: Measurement, theory: Theory, params: Params = Params()) -> dict:
         (Fit(mk.key,
              share_on(m.pcd, mk.degrees),
              share_on(m.pcd, mk.degrees, tol),
-             share_on(m.pcd, mk.degrees_with_all_variants if params.variants_in_abstention else mk.degrees, tol),
+             coverage(m, mk, tol, params),
              {v.name: share_on(m.pcd, mk.degrees_with(v.name)) for v in mk.variants},
-             guclu_emphasis(m.pcd, mk))
+             guclu_emphasis(m.pcd, mk),
+             variant_direction_share(m, mk, tol))
          for mk in applicable),
         key=lambda f: f.exact, reverse=True)
 

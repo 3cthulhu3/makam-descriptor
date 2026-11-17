@@ -16,6 +16,7 @@ from .symbtr import DEFAULT_PITCH_COLUMN, PITCH_COLUMNS
 
 COMMAS = 53
 SEYIR_VALUES = ("ascending", "descending", "both", "unknown")
+DIRECTION_VALUES = ("ascending", "descending", "any")
 
 
 @dataclass(frozen=True)
@@ -23,6 +24,7 @@ class Variant:
     name: str
     add: frozenset[int]          # extra degrees, relative to karar
     note: str
+    direction: str = "any"       # melodic direction in which the variant is used
 
 
 @dataclass(frozen=True)
@@ -145,9 +147,13 @@ def load_theory(path: str | Path | None = None) -> Theory:
         variants = tuple(
             Variant(_need(v, "name", f"{key} variant"),
                     frozenset(_rel(pc_of(p, key), karar_pc) for p in _need(v, "add", f"{key} variant")),
-                    v.get("note", ""))
+                    v.get("note", ""), v.get("direction", "any"))
             for v in e.get("variants", [])
         )
+        for v in variants:
+            if v.direction not in DIRECTION_VALUES:
+                raise TheoryError(f"{key}: variant {v.name!r} direction must be one of "
+                                  f"{DIRECTION_VALUES}, got {v.direction!r}")
         if len({v.name for v in variants}) != len(variants):
             raise TheoryError(f"{key}: duplicate variant name")
         guclu = _need(e, "guclu", key)
