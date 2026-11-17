@@ -28,11 +28,13 @@ def rounding_error_cents(abs_pcd53: np.ndarray) -> float:
 
 def key_find(abs_pcd53: np.ndarray) -> dict:
     h = project_to_12(abs_pcd53)
+    err = round(rounding_error_cents(abs_pcd53), 1)
+    if np.ptp(h) == 0:   # a flat profile correlates with nothing; say so instead of NaN
+        return {"key": None, "correlation": None, "mean_rounding_error_cents": err}
     best = ("", -2.0)
     for tonic in range(12):
         for mode, prof in (("major", KK_MAJOR), ("minor", KK_MINOR)):
             r = float(np.corrcoef(h, np.roll(prof, tonic))[0, 1])
             if r > best[1]:
                 best = (f"{NAMES[tonic]} {mode}", r)
-    return {"key": best[0], "correlation": round(best[1], 3),
-            "mean_rounding_error_cents": round(rounding_error_cents(abs_pcd53), 1)}
+    return {"key": best[0], "correlation": round(best[1], 3), "mean_rounding_error_cents": err}

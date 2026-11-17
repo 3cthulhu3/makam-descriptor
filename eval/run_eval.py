@@ -1,6 +1,7 @@
 """Evaluation on SymbTr scores.
 
-Usage: python eval/run_eval.py /path/to/SymbTr/txt [--json results.json]
+Usage: python eval/run_eval.py /path/to/SymbTr/txt [--unknown proposal|frequency]
+           [--pitch-column KomaAE|Koma53] [--no-variants] [--json results.json]
 
 Four questions, each with its own measure (proposal, Section 6):
   1. identification: top-1, candidate-set coverage and size (known makams)
@@ -9,20 +10,29 @@ Four questions, each with its own measure (proposal, Section 6):
   3. calibration: (Phase 1)
   4. agent benefit: (Phase 3)
 Plus the Western baseline per makam.
+
+--pitch-column and --no-variants exist so that the two analytic choices made
+after the v0.1 run can be undone and their effect reported next to the default.
 """
 from __future__ import annotations
 
 import argparse
 import collections
+import dataclasses
 import json
 import sys
 from pathlib import Path
 
 import numpy as np
 
+try:
+    import makam_descriptor
+except ModuleNotFoundError:      # run from a checkout that was not pip-installed
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+    import makam_descriptor
 from makam_descriptor.consistency import Params, compare
 from makam_descriptor.measure import MeasurementError, measure
-from makam_descriptor.symbtr import read_symbtr_txt
+from makam_descriptor.symbtr import PITCH_COLUMNS, SymbTrFormatError, read_symbtr_txt
 from makam_descriptor.theory import load_theory
 from makam_descriptor.western import key_find
 
@@ -40,23 +50,29 @@ UNKNOWN_SETS = {
 }
 
 
-def auroc(pos: list[float], neg: list[float]) -> float:
+def auroc(pos: list[float], neg: list[float]) -> float | None:
     """P(score_pos > score_neg) + 0.5 P(tie) — Mann–Whitney form, threshold-free."""
+    if not pos or not neg:
+        return None
     p, n = np.asarray(pos), np.asarray(neg)
     gt = (p[:, None] > n[None, :]).sum()
     eq = (p[:, None] == n[None, :]).sum()
     return float((gt + 0.5 * eq) / (len(p) * len(n)))
 
 
-def load(txt_dir: Path, makams: list[str]):
+def rate(num: float, den: float) -> float | None:
+    return num / den if den else None
+
+
+def load(txt_dir: Path, makams: list[str], column: str, dropped: list[str]):
     out = []
     for mk in makams:
         for f in sorted(txt_dir.glob(f"{mk}--*.txt")):
-            s = read_symbtr_txt(f)
             try:
+                s = read_symbtr_txt(f, column)
                 out.append((mk, s.name, measure(s.notes)))
-            except MeasurementError:
-                pass
+            except (MeasurementError, SymbTrFormatError) as e:
+                dropped.append(f"{f.name}: {e}")
     return out
 
 
@@ -65,13 +81,27 @@ def main(argv=None):
     ap.add_argument("txt_dir", type=Path)
     ap.add_argument("--json", type=Path)
     ap.add_argument("--unknown", choices=list(UNKNOWN_SETS), default="proposal")
+    ap.add_argument("--pitch-column", choices=PITCH_COLUMNS,
+                    help="default: the column the theory names (KomaAE for AEU)")
+    ap.add_argument("--no-variants", action="store_true",
+                    help="v0.1 abstention rule: judge against the dizi only, ignore declared variants")
     a = ap.parse_args(argv)
     UNKNOWN = UNKNOWN_SETS[a.unknown]
 
-    theory, params = load_theory(), Params()
-    known = load(a.txt_dir, list(theory.makams))
-    unknown = load(a.txt_dir, UNKNOWN)
-    res: dict = {"unknown_set": a.unknown, "params": params.__dict__, "n_known": len(known), "n_unknown": len(unknown)}
+    theory = load_theory()
+    params = Params(variants_in_abstention=not a.no_variants)
+    column = a.pitch_column or theory.symbtr_column
+    if not a.txt_dir.is_dir():
+        sys.exit(f"not a directory: {a.txt_dir}")
+    dropped: list[str] = []
+    known = load(a.txt_dir, list(theory.makams), column, dropped)
+    unknown = load(a.txt_dir, UNKNOWN, column, dropped)
+    if not known or not unknown:
+        sys.exit(f"no SymbTr scores of the evaluated makams under {a.txt_dir} "
+                 "(expected files like 'rast--sarki--....txt'; point this at SymbTr/txt)")
+    res: dict = {"package_version": makam_descriptor.__version__, "unknown_set": a.unknown,
+                 "pitch_column": column, "params": dataclasses.asdict(params),
+                 "n_known": len(known), "n_unknown": len(unknown), "dropped_files": dropped}
 
     # 1 + Western baseline
     per = collections.defaultdict(lambda: collections.Counter())
@@ -81,11 +111,15 @@ def main(argv=None):
     for mk, _, m in known:
         c = compare(m, theory, params)
         per[mk]["n"] += 1
+        per[mk]["karar_as_theory"] += m.karar_pc == theory.makams[mk].karar_pc
         per[mk]["top1"] += c["ranked_top"] == mk                 # ranking, regardless of abstention
+        per[mk]["tied_top"] += bool(c["fits"]) and c["ranked_top"] is None
         per[mk]["in_set"] += mk in c["ranked_candidates"]
         per[mk]["set_size"] += len(c["ranked_candidates"])
         per[mk]["abstain"] += c["abstain"]
         per[mk]["accepted_correct"] += c["top"] == mk            # what the tool actually asserts
+        per[mk]["accepted_wrong"] += c["top"] not in (None, mk)
+        per[mk]["accepted_via_variants"] += c["accepted_via_variants"]
         # Identification with 1 comma of tolerance: is the true makam *uniquely* best?
         if c["fits"]:
             tf = {f.makam: f.tolerant for f in c["fits"]}
@@ -97,30 +131,40 @@ def main(argv=None):
         kk_known.append(kf["correlation"])
     for mk, _, m in unknown:
         c = compare(m, theory, params)
+        kk = m.karar_pc in theory.karar_pcs
         per[mk]["n"] += 1
         per[mk]["abstain"] += c["abstain"]
-        per[mk]["karar_known"] += m.karar_pc in theory.karar_pcs
-        per[mk]["abstain_karar_known"] += c["abstain"] and m.karar_pc in theory.karar_pcs
-        unk_scores.append((c["in_theory_score"], m.karar_pc in theory.karar_pcs))
+        per[mk]["karar_known"] += kk
+        per[mk]["abstain_karar_known"] += c["abstain"] and kk
+        if not c["abstain"]:
+            per[mk]["named_" + (c["top"] or "tie")] += 1
+        unk_scores.append((c["in_theory_score"], kk))
         kf = key_find(m.abs_pcd)
         keys[mk][kf["key"]] += 1
         kk_unk.append(kf["correlation"])
 
     n_k = len(known)
+    tot = lambda field: sum(per[m][field] for m in theory.makams)  # noqa: E731
     res["identification"] = {
-        "top1": sum(per[m]["top1"] for m in theory.makams) / n_k,
-        "in_candidate_set": sum(per[m]["in_set"] for m in theory.makams) / n_k,
-        "mean_set_size": sum(per[m]["set_size"] for m in theory.makams) / n_k,
-        "abstain_rate_known": sum(per[m]["abstain"] for m in theory.makams) / n_k,
-        "accepted_and_correct": sum(per[m]["accepted_correct"] for m in theory.makams) / n_k,
+        "top1": tot("top1") / n_k,
+        "tied_top": tot("tied_top") / n_k,
+        "in_candidate_set": tot("in_set") / n_k,
+        "mean_set_size": tot("set_size") / n_k,
+        "karar_as_theory": tot("karar_as_theory") / n_k,
+        "abstain_rate_known": tot("abstain") / n_k,
+        "accepted_and_correct": tot("accepted_correct") / n_k,
+        "accepted_and_wrong": tot("accepted_wrong") / n_k,
+        "accepted_via_variants": tot("accepted_via_variants") / n_k,
     }
     n_kk = sum(per[m]["karar_known"] for m in UNKNOWN)
     res["abstention"] = {
         "abstain_rate_unknown": sum(per[m]["abstain"] for m in UNKNOWN) / len(unknown),
         "n_unknown_karar_known": n_kk,
-        "abstain_rate_unknown_karar_known": sum(per[m]["abstain_karar_known"] for m in UNKNOWN) / max(n_kk, 1),
+        "abstain_rate_unknown_karar_known": rate(sum(per[m]["abstain_karar_known"] for m in UNKNOWN), n_kk),
         "auroc": auroc(known_scores, [s for s, _ in unk_scores]),
         "auroc_karar_known": auroc(known_scores, [s for s, k in unk_scores if k]),
+        # Not a like-for-like baseline: a key-profile correlation was never meant as a
+        # novelty score. It shows what a Western tool offers for this question, no more.
         "auroc_western_correlation": auroc(kk_known, kk_unk),
     }
 
@@ -128,24 +172,44 @@ def main(argv=None):
     lomo = {}
     for mk in theory.makams:
         th = theory.without(mk)
-        pieces = [m for k, _, m in known if k == mk]
-        flagged = sum(compare(m, th, params)["abstain"] for m in pieces)
-        stolen = collections.Counter(compare(m, th, params)["top"] for m in pieces)
-        lomo[mk] = {"n": len(pieces), "flagged": flagged / len(pieces),
-                    "absorbed_by": {k: v for k, v in stolen.most_common() if k}}
+        cs = [compare(m, th, params) for k, _, m in known if k == mk]
+        if not cs:
+            continue
+        stolen = collections.Counter(c["top"] or "tie" for c in cs if not c["abstain"])
+        lomo[mk] = {"n": len(cs), "flagged": sum(c["abstain"] for c in cs) / len(cs),
+                    "absorbed_by": dict(stolen.most_common())}
     res["leave_one_makam_out"] = lomo
 
-    res["per_makam"] = {
-        mk: {**{k: (v / per[mk]["n"] if k not in ("n", "karar_known") else v) for k, v in per[mk].items()},
-             "top1_unique_with_1_comma_tolerance": tol_ident[mk] / per[mk]["n"] if mk in theory.makams else None,
-             "western_top": keys[mk].most_common(3)}
-        for mk in list(theory.makams) + UNKNOWN
-    }
+    per_makam = {}
+    for mk in theory.makams:
+        c, n = per[mk], per[mk]["n"]
+        if not n:
+            continue
+        per_makam[mk] = {
+            "n": n,
+            **{k: c[k] / n for k in ("karar_as_theory", "top1", "tied_top", "in_set", "set_size", "abstain",
+                                     "accepted_correct", "accepted_wrong", "accepted_via_variants")},
+            "top1_unique_with_1_comma_tolerance": tol_ident[mk] / n,
+            "western_top": keys[mk].most_common(3),
+        }
+    for mk in UNKNOWN:
+        c, n = per[mk], per[mk]["n"]
+        if not n:
+            continue
+        per_makam[mk] = {
+            "n": n, "abstain": c["abstain"] / n,
+            "n_karar_known": c["karar_known"],
+            # of the pieces whose karar the theory knows, the share that is flagged
+            "abstain_given_karar_known": rate(c["abstain_karar_known"], c["karar_known"]),
+            "named_as": {k[len("named_"):]: v for k, v in c.most_common() if k.startswith("named_")},
+            "western_top": keys[mk].most_common(3),
+        }
+    res["per_makam"] = per_makam
 
-    txt = json.dumps(res, indent=2, ensure_ascii=False, default=float)
+    txt = json.dumps(res, indent=2, ensure_ascii=False, default=float, allow_nan=False)
     print(txt)
     if a.json:
-        a.json.write_text(txt, encoding="utf-8")
+        a.json.write_text(txt + "\n", encoding="utf-8")
 
 
 if __name__ == "__main__":

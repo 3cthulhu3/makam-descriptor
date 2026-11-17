@@ -5,13 +5,19 @@
 # carries an empty reviewer list until a makam-trained musician has checked it.
 #
 # Units: Holdrian commas (1/53 octave, ~22.64 cents).
-# Pitch-class convention: notation pitch (bolahenk), çargah = C = 0, so that
-# comma positions match SymbTr's `Koma53 mod 53`.
+# Pitch-class convention: notation pitch (bolahenk), çargah = C = 0.
+#
+# These are AEU positions, so they are commensurate with SymbTr's `KomaAE`
+# column (mod 53). SymbTr's other pitch column, `Koma53`, follows performance
+# practice and sits one comma away from AEU on exactly the degrees that tell
+# these makams apart (uşşak's segâh, hüseynî's eviç). `symbtr_column` below
+# names the column this theory is compared with.
 
 [meta]
 system = "AEU"
-version = "0.1.0"
+version = "0.2.0"
 comma_per_octave = 53
+symbtr_column = "KomaAE"
 pitch_reference = "bolahenk notation; cargah (C) = 0, rast (G) = 31"
 
 # ---------------------------------------------------------------------------
@@ -66,7 +72,15 @@ hicaz_5    = { intervals = [5, 12, 5, 9], display = "hicâz beşlisi" }
 # Makamlar. `dizi` is a list of cins placed consecutively from the karar; the
 # intervals must sum to 53. `guclu` and `seyir` are recorded now and used as
 # features in Phase 1. `variants` list pitches that practice or other sources
-# add; they are reported, never used silently for identification.
+# add. They never enter the ranking (identification is on the dizi alone), but
+# a piece that stays inside dizi + variants is not "outside the theory", so
+# they do count for abstention, and the output says which variant was needed.
+#
+# Added in 0.2.0, after the v0.1 evaluation showed the gap, and unreviewed like
+# everything else here: `descending_acem` for rast and for hicaz. Both follow
+# the same textbook rule the file already used for hüseynî (acem replaces eviç
+# in descent). For hicaz this is the hümâyun dizi; whether hicaz and hümâyun
+# should be one entry or two is a question for the reviewer.
 # ---------------------------------------------------------------------------
 [makam.rast]
 display  = "Rast"
@@ -76,6 +90,7 @@ guclu    = "neva"
 seyir    = "ascending"
 source   = "AEU"
 reviewers = []
+variants = [{ name = "descending_acem", add = ["acem"], note = "acem instead of evic when descending (acemli rast: buselik tetrachord on neva)" }]
 
 [makam.mahur]
 display  = "Mâhur"
@@ -123,6 +138,7 @@ guclu    = "neva"
 seyir    = "ascending"
 source   = "AEU"
 reviewers = []
+variants = [{ name = "descending_acem", add = ["acem"], note = "acem instead of evic when descending (buselik pentachord on neva, the humayun dizi)" }]
 
 [makam.buselik]
 display  = "Bûselik"

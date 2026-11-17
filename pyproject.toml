@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "makam-descriptor"
-version = "0.1.0"
+version = "0.2.0"
 description = "A culture-aware description tool for Turkish makam music, built for LLM tool calling"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -15,8 +15,15 @@ dependencies = ["numpy>=1.24"]
 [project.optional-dependencies]
 dev = ["pytest>=7"]
 
+[project.scripts]
+makam-descriptor = "makam_descriptor.__main__:main"
+
 [tool.setuptools.packages.find]
 where = ["src"]
 
 [tool.setuptools.package-data]
 makam_descriptor = ["data/*.toml"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]     # tests run from a checkout, installed or not

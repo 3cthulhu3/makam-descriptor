@@ -1,91 +1,109 @@
 {
+  "package_version": "0.2.0",
   "unknown_set": "proposal",
+  "pitch_column": "KomaAE",
   "params": {
     "abstain_threshold": 0.9,
     "abstain_tolerance": 1,
-    "candidate_margin": 0.05
+    "candidate_margin": 0.05,
+    "variants_in_abstention": true
   },
   "n_known": 751,
   "n_unknown": 456,
+  "dropped_files": [],
   "identification": {
-    "top1": 0.8561917443408789,
-    "in_candidate_set": 0.9653794940079894,
-    "mean_set_size": 1.4900133155792277,
-    "abstain_rate_known": 0.1318242343541944,
-    "accepted_and_correct": 0.7443408788282291
+    "top1": 0.8788282290279628,
+    "tied_top": 0.02663115845539281,
+    "in_candidate_set": 0.9693741677762983,
+    "mean_set_size": 1.2063914780292944,
+    "karar_as_theory": 0.9840213049267643,
+    "abstain_rate_known": 0.023968042609853527,
+    "accepted_and_correct": 0.8641810918774967,
+    "accepted_and_wrong": 0.085219707057257,
+    "accepted_via_variants": 0.10252996005326231
   },
   "abstention": {
-    "abstain_rate_unknown": 0.9451754385964912,
+    "abstain_rate_unknown": 0.8793859649122807,
     "n_unknown_karar_known": 257,
-    "abstain_rate_unknown_karar_known": 0.9027237354085603,
-    "auroc": 0.9644538276450113,
-    "auroc_karar_known": 0.9415694767547291,
-    "auroc_western_correlation": 0.7016697035531572
+    "abstain_rate_unknown_karar_known": 0.7859922178988327,
+    "auroc": 0.983952682972411,
+    "auroc_karar_known": 0.9761666675301932,
+    "auroc_western_correlation": 0.7090531338332515
   },
   "leave_one_makam_out": {
     "rast": {
       "n": 109,
-      "flagged": 0.10091743119266056,
+      "flagged": 0.09174311926605505,
       "absorbed_by": {
-        "mahur": 96,
+        "mahur": 97,
         "huseyni": 1,
-        "nihavent": 1
+        "tie": 1
       }
     },
     "mahur": {
       "n": 88,
-      "flagged": 0.09090909090909091,
+      "flagged": 0.045454545454545456,
       "absorbed_by": {
-        "rast": 80
+        "rast": 84
       }
     },
     "nihavent": {
       "n": 130,
-      "flagged": 1.0,
-      "absorbed_by": {}
+      "flagged": 0.9923076923076923,
+      "absorbed_by": {
+        "rast": 1
+      }
     },
     "ussak": {
       "n": 118,
-      "flagged": 0.0847457627118644,
+      "flagged": 0.00847457627118644,
       "absorbed_by": {
-        "buselik": 68,
-        "huseyni": 40
+        "huseyni": 111,
+        "buselik": 5,
+        "tie": 1
       }
     },
     "huseyni": {
       "n": 92,
-      "flagged": 0.20652173913043478,
+      "flagged": 0.1956521739130435,
       "absorbed_by": {
-        "ussak": 59,
-        "buselik": 13,
-        "mahur": 1
+        "ussak": 72,
+        "buselik": 1,
+        "rast": 1
       }
     },
     "hicaz": {
       "n": 157,
-      "flagged": 0.9936305732484076,
+      "flagged": 0.9617834394904459,
       "absorbed_by": {
+        "huseyni": 5,
         "ussak": 1
       }
     },
     "buselik": {
       "n": 57,
-      "flagged": 0.14035087719298245,
+      "flagged": 0.07017543859649122,
       "absorbed_by": {
-        "ussak": 48,
-        "huseyni": 1
+        "ussak": 47,
+        "huseyni": 3,
+        "tie": 2,
+        "rast": 1
       }
     }
   },
   "per_makam": {
     "rast": {
       "n": 109,
+      "karar_as_theory": 0.9908256880733946,
       "top1": 0.9908256880733946,
+      "tied_top": 0.0,
       "in_set": 0.9908256880733946,
       "set_size": 1.0,
-      "abstain": 0.09174311926605505,
-      "accepted_correct": 0.8990825688073395,
-      "top1_unique_with_1_comma_tolerance": 0.06422018348623854,
+      "abstain": 0.027522935779816515,
+      "accepted_correct": 0.963302752293578,
+      "accepted_wrong": 0.009174311926605505,
+      "accepted_via_variants": 0.06422018348623854,
+      "top1_unique_with_1_comma_tolerance": 0.0,
       "western_top": [
         [
           "G major",
@@ -103,20 +121,24 @@
     },
     "mahur": {
       "n": 88,
-      "top1": 0.9659090909090909,
+      "karar_as_theory": 0.9886363636363636,
+      "top1": 0.9431818181818182,
+      "tied_top": 0.0,
       "in_set": 0.9772727272727273,
       "set_size": 1.0568181818181819,
-      "abstain": 0.09090909090909091,
-      "accepted_correct": 0.8863636363636364,
-      "top1_unique_with_1_comma_tolerance": 0.022727272727272728,
+      "abstain": 0.045454545454545456,
+      "accepted_correct": 0.8636363636363636,
+      "accepted_wrong": 0.09090909090909091,
+      "accepted_via_variants": 0.045454545454545456,
+      "top1_unique_with_1_comma_tolerance": 0.0,
       "western_top": [
         [
           "G major",
-          84
+          85
         ],
         [
           "D major",
-          3
+          2
         ],
         [
           "B minor",
@@ -126,11 +148,15 @@
     },
     "nihavent": {
       "n": 130,
-      "top1": 0.9846153846153847,
-      "in_set": 0.9846153846153847,
+      "karar_as_theory": 0.9846153846153847,
+      "top1": 0.9769230769230769,
+      "tied_top": 0.0,
+      "in_set": 0.9769230769230769,
       "set_size": 0.9846153846153847,
-      "abstain": 0.16923076923076924,
-      "accepted_correct": 0.8307692307692308,
+      "abstain": 0.023076923076923078,
+      "accepted_correct": 0.9692307692307692,
+      "accepted_wrong": 0.007692307692307693,
+      "accepted_via_variants": 0.13846153846153847,
       "top1_unique_with_1_comma_tolerance": 0.9769230769230769,
       "western_top": [
         [
@@ -149,20 +175,24 @@
     },
     "ussak": {
       "n": 118,
-      "top1": 0.847457627118644,
-      "in_set": 0.9915254237288136,
-      "set_size": 2.5847457627118646,
-      "abstain": 0.025423728813559324,
-      "accepted_correct": 0.8305084745762712,
-      "top1_unique_with_1_comma_tolerance": 0.5338983050847458,
+      "karar_as_theory": 0.9915254237288136,
+      "top1": 0.6271186440677966,
+      "tied_top": 0.1271186440677966,
+      "in_set": 0.9745762711864406,
+      "set_size": 1.7457627118644068,
+      "abstain": 0.00847457627118644,
+      "accepted_correct": 0.6186440677966102,
+      "accepted_wrong": 0.2457627118644068,
+      "accepted_via_variants": 0.00847457627118644,
+      "top1_unique_with_1_comma_tolerance": 0.0,
       "western_top": [
         [
           "A minor",
-          69
+          66
         ],
         [
           "D major",
-          24
+          27
         ],
         [
           "G major",
@@ -172,11 +202,15 @@
     },
     "huseyni": {
       "n": 92,
-      "top1": 0.18478260869565216,
-      "in_set": 0.8478260869565217,
-      "set_size": 2.5869565217391304,
-      "abstain": 0.05434782608695652,
-      "accepted_correct": 0.18478260869565216,
+      "karar_as_theory": 0.9565217391304348,
+      "top1": 0.6413043478260869,
+      "tied_top": 0.05434782608695652,
+      "in_set": 0.8913043478260869,
+      "set_size": 1.576086956521739,
+      "abstain": 0.03260869565217391,
+      "accepted_correct": 0.6630434782608695,
+      "accepted_wrong": 0.25,
+      "accepted_via_variants": 0.021739130434782608,
       "top1_unique_with_1_comma_tolerance": 0.6195652173913043,
       "western_top": [
         [
@@ -185,53 +219,61 @@
         ],
         [
           "E minor",
-          25
+          26
         ],
         [
           "D major",
-          12
+          10
         ]
       ]
     },
     "hicaz": {
       "n": 157,
-      "top1": 0.9617834394904459,
-      "in_set": 0.9808917197452229,
-      "set_size": 1.197452229299363,
-      "abstain": 0.2802547770700637,
-      "accepted_correct": 0.7006369426751592,
+      "karar_as_theory": 1.0,
+      "top1": 0.9872611464968153,
+      "tied_top": 0.0,
+      "in_set": 0.9936305732484076,
+      "set_size": 1.070063694267516,
+      "abstain": 0.012738853503184714,
+      "accepted_correct": 0.9808917197452229,
+      "accepted_wrong": 0.006369426751592357,
+      "accepted_via_variants": 0.25477707006369427,
       "top1_unique_with_1_comma_tolerance": 0.9745222929936306,
       "western_top": [
         [
           "A major",
-          78
+          79
         ],
         [
           "D major",
-          41
+          42
         ],
         [
           "D minor",
-          36
+          34
         ]
       ]
     },
     "buselik": {
       "n": 57,
+      "karar_as_theory": 0.9473684210526315,
       "top1": 0.9473684210526315,
+      "tied_top": 0.0,
       "in_set": 0.9473684210526315,
-      "set_size": 1.0175438596491229,
-      "abstain": 0.12280701754385964,
-      "accepted_correct": 0.8771929824561403,
+      "set_size": 1.0,
+      "abstain": 0.03508771929824561,
+      "accepted_correct": 0.9473684210526315,
+      "accepted_wrong": 0.017543859649122806,
+      "accepted_via_variants": 0.08771929824561403,
       "top1_unique_with_1_comma_tolerance": 0.0,
       "western_top": [
         [
           "A minor",
-          44
+          43
         ],
         [
           "C major",
-          9
+          10
         ],
         [
           "E minor",
@@ -242,9 +284,9 @@
     "huzzam": {
       "n": 96,
       "abstain": 1.0,
-      "karar_known": 0,
-      "abstain_karar_known": 0.0,
-      "top1_unique_with_1_comma_tolerance": null,
+      "n_karar_known": 0,
+      "abstain_given_karar_known": null,
+      "named_as": {},
       "western_top": [
         [
           "G major",
@@ -252,45 +294,47 @@
         ],
         [
           "B minor",
-          34
+          33
         ],
         [
           "D major",
-          17
+          18
         ]
       ]
     },
     "segah": {
       "n": 92,
       "abstain": 1.0,
-      "karar_known": 0,
-      "abstain_karar_known": 0.0,
-      "top1_unique_with_1_comma_tolerance": null,
+      "n_karar_known": 0,
+      "abstain_given_karar_known": null,
+      "named_as": {},
       "western_top": [
         [
           "B minor",
-          53
+          49
         ],
         [
           "G major",
-          33
+          35
         ],
         [
           "D major",
-          3
+          4
         ]
       ]
     },
     "hicazkar": {
       "n": 79,
-      "abstain": 1.0,
-      "karar_known": 72,
-      "abstain_karar_known": 0.9113924050632911,
-      "top1_unique_with_1_comma_tolerance": null,
+      "abstain": 0.9746835443037974,
+      "n_karar_known": 72,
+      "abstain_given_karar_known": 0.9722222222222222,
+      "named_as": {
+        "nihavent": 2
+      },
       "western_top": [
         [
           "G major",
-          64
+          66
         ],
         [
           "C minor",
@@ -298,37 +342,44 @@
         ],
         [
           "G minor",
-          6
+          5
         ]
       ]
     },
     "kurdilihicazkar": {
       "n": 70,
-      "abstain": 0.8285714285714286,
-      "karar_known": 69,
-      "abstain_karar_known": 0.8142857142857143,
-      "top1_unique_with_1_comma_tolerance": null,
+      "abstain": 0.7,
+      "n_karar_known": 69,
+      "abstain_given_karar_known": 0.6956521739130435,
+      "named_as": {
+        "nihavent": 20,
+        "rast": 1
+      },
       "western_top": [
         [
           "G minor",
-          60
+          61
         ],
         [
           "C minor",
-          6
+          7
         ],
         [
-          "C major",
+          "G major",
           2
         ]
       ]
     },
     "saba": {
       "n": 66,
-      "abstain": 0.9696969696969697,
-      "karar_known": 64,
-      "abstain_karar_known": 0.9393939393939394,
-      "top1_unique_with_1_comma_tolerance": null,
+      "abstain": 0.8181818181818182,
+      "n_karar_known": 64,
+      "abstain_given_karar_known": 0.8125,
+      "named_as": {
+        "buselik": 6,
+        "huseyni": 4,
+        "ussak": 2
+      },
       "western_top": [
         [
           "A minor",
@@ -342,10 +393,16 @@
     },
     "karcigar": {
       "n": 53,
-      "abstain": 0.7924528301886793,
-      "karar_known": 52,
-      "abstain_karar_known": 0.7735849056603774,
-      "top1_unique_with_1_comma_tolerance": null,
+      "abstain": 0.6226415094339622,
+      "n_karar_known": 52,
+      "abstain_given_karar_known": 0.6153846153846154,
+      "named_as": {
+        "huseyni": 16,
+        "tie": 1,
+        "ussak": 1,
+        "buselik": 1,
+        "nihavent": 1
+      },
       "western_top": [
         [
           "G major",

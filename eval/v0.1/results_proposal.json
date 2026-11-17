@@ -1,0 +1,365 @@
+{
+  "unknown_set": "proposal",
+  "params": {
+    "abstain_threshold": 0.9,
+    "abstain_tolerance": 1,
+    "candidate_margin": 0.05
+  },
+  "n_known": 751,
+  "n_unknown": 456,
+  "identification": {
+    "top1": 0.8561917443408789,
+    "in_candidate_set": 0.9653794940079894,
+    "mean_set_size": 1.4900133155792277,
+    "abstain_rate_known": 0.1318242343541944,
+    "accepted_and_correct": 0.7443408788282291
+  },
+  "abstention": {
+    "abstain_rate_unknown": 0.9451754385964912,
+    "n_unknown_karar_known": 257,
+    "abstain_rate_unknown_karar_known": 0.9027237354085603,
+    "auroc": 0.9644538276450113,
+    "auroc_karar_known": 0.9415694767547291,
+    "auroc_western_correlation": 0.7016697035531572
+  },
+  "leave_one_makam_out": {
+    "rast": {
+      "n": 109,
+      "flagged": 0.10091743119266056,
+      "absorbed_by": {
+        "mahur": 96,
+        "huseyni": 1,
+        "nihavent": 1
+      }
+    },
+    "mahur": {
+      "n": 88,
+      "flagged": 0.09090909090909091,
+      "absorbed_by": {
+        "rast": 80
+      }
+    },
+    "nihavent": {
+      "n": 130,
+      "flagged": 1.0,
+      "absorbed_by": {}
+    },
+    "ussak": {
+      "n": 118,
+      "flagged": 0.0847457627118644,
+      "absorbed_by": {
+        "buselik": 68,
+        "huseyni": 40
+      }
+    },
+    "huseyni": {
+      "n": 92,
+      "flagged": 0.20652173913043478,
+      "absorbed_by": {
+        "ussak": 59,
+        "buselik": 13,
+        "mahur": 1
+      }
+    },
+    "hicaz": {
+      "n": 157,
+      "flagged": 0.9936305732484076,
+      "absorbed_by": {
+        "ussak": 1
+      }
+    },
+    "buselik": {
+      "n": 57,
+      "flagged": 0.14035087719298245,
+      "absorbed_by": {
+        "ussak": 48,
+        "huseyni": 1
+      }
+    }
+  },
+  "per_makam": {
+    "rast": {
+      "n": 109,
+      "top1": 0.9908256880733946,
+      "in_set": 0.9908256880733946,
+      "set_size": 1.0,
+      "abstain": 0.09174311926605505,
+      "accepted_correct": 0.8990825688073395,
+      "top1_unique_with_1_comma_tolerance": 0.06422018348623854,
+      "western_top": [
+        [
+          "G major",
+          103
+        ],
+        [
+          "D major",
+          5
+        ],
+        [
+          "A minor",
+          1
+        ]
+      ]
+    },
+    "mahur": {
+      "n": 88,
+      "top1": 0.9659090909090909,
+      "in_set": 0.9772727272727273,
+      "set_size": 1.0568181818181819,
+      "abstain": 0.09090909090909091,
+      "accepted_correct": 0.8863636363636364,
+      "top1_unique_with_1_comma_tolerance": 0.022727272727272728,
+      "western_top": [
+        [
+          "G major",
+          84
+        ],
+        [
+          "D major",
+          3
+        ],
+        [
+          "B minor",
+          1
+        ]
+      ]
+    },
+    "nihavent": {
+      "n": 130,
+      "top1": 0.9846153846153847,
+      "in_set": 0.9846153846153847,
+      "set_size": 0.9846153846153847,
+      "abstain": 0.16923076923076924,
+      "accepted_correct": 0.8307692307692308,
+      "top1_unique_with_1_comma_tolerance": 0.9769230769230769,
+      "western_top": [
+        [
+          "G minor",
+          115
+        ],
+        [
+          "D minor",
+          10
+        ],
+        [
+          "Bb major",
+          2
+        ]
+      ]
+    },
+    "ussak": {
+      "n": 118,
+      "top1": 0.847457627118644,
+      "in_set": 0.9915254237288136,
+      "set_size": 2.5847457627118646,
+      "abstain": 0.025423728813559324,
+      "accepted_correct": 0.8305084745762712,
+      "top1_unique_with_1_comma_tolerance": 0.5338983050847458,
+      "western_top": [
+        [
+          "A minor",
+          69
+        ],
+        [
+          "D major",
+          24
+        ],
+        [
+          "G major",
+          18
+        ]
+      ]
+    },
+    "huseyni": {
+      "n": 92,
+      "top1": 0.18478260869565216,
+      "in_set": 0.8478260869565217,
+      "set_size": 2.5869565217391304,
+      "abstain": 0.05434782608695652,
+      "accepted_correct": 0.18478260869565216,
+      "top1_unique_with_1_comma_tolerance": 0.6195652173913043,
+      "western_top": [
+        [
+          "A minor",
+          43
+        ],
+        [
+          "E minor",
+          25
+        ],
+        [
+          "D major",
+          12
+        ]
+      ]
+    },
+    "hicaz": {
+      "n": 157,
+      "top1": 0.9617834394904459,
+      "in_set": 0.9808917197452229,
+      "set_size": 1.197452229299363,
+      "abstain": 0.2802547770700637,
+      "accepted_correct": 0.7006369426751592,
+      "top1_unique_with_1_comma_tolerance": 0.9745222929936306,
+      "western_top": [
+        [
+          "A major",
+          78
+        ],
+        [
+          "D major",
+          41
+        ],
+        [
+          "D minor",
+          36
+        ]
+      ]
+    },
+    "buselik": {
+      "n": 57,
+      "top1": 0.9473684210526315,
+      "in_set": 0.9473684210526315,
+      "set_size": 1.0175438596491229,
+      "abstain": 0.12280701754385964,
+      "accepted_correct": 0.8771929824561403,
+      "top1_unique_with_1_comma_tolerance": 0.0,
+      "western_top": [
+        [
+          "A minor",
+          44
+        ],
+        [
+          "C major",
+          9
+        ],
+        [
+          "E minor",
+          3
+        ]
+      ]
+    },
+    "huzzam": {
+      "n": 96,
+      "abstain": 1.0,
+      "karar_known": 0,
+      "abstain_karar_known": 0.0,
+      "top1_unique_with_1_comma_tolerance": null,
+      "western_top": [
+        [
+          "G major",
+          41
+        ],
+        [
+          "B minor",
+          34
+        ],
+        [
+          "D major",
+          17
+        ]
+      ]
+    },
+    "segah": {
+      "n": 92,
+      "abstain": 1.0,
+      "karar_known": 0,
+      "abstain_karar_known": 0.0,
+      "top1_unique_with_1_comma_tolerance": null,
+      "western_top": [
+        [
+          "B minor",
+          53
+        ],
+        [
+          "G major",
+          33
+        ],
+        [
+          "D major",
+          3
+        ]
+      ]
+    },
+    "hicazkar": {
+      "n": 79,
+      "abstain": 1.0,
+      "karar_known": 72,
+      "abstain_karar_known": 0.9113924050632911,
+      "top1_unique_with_1_comma_tolerance": null,
+      "western_top": [
+        [
+          "G major",
+          64
+        ],
+        [
+          "C minor",
+          8
+        ],
+        [
+          "G minor",
+          6
+        ]
+      ]
+    },
+    "kurdilihicazkar": {
+      "n": 70,
+      "abstain": 0.8285714285714286,
+      "karar_known": 69,
+      "abstain_karar_known": 0.8142857142857143,
+      "top1_unique_with_1_comma_tolerance": null,
+      "western_top": [
+        [
+          "G minor",
+          60
+        ],
+        [
+          "C minor",
+          6
+        ],
+        [
+          "C major",
+          2
+        ]
+      ]
+    },
+    "saba": {
+      "n": 66,
+      "abstain": 0.9696969696969697,
+      "karar_known": 64,
+      "abstain_karar_known": 0.9393939393939394,
+      "top1_unique_with_1_comma_tolerance": null,
+      "western_top": [
+        [
+          "A minor",
+          41
+        ],
+        [
+          "C major",
+          25
+        ]
+      ]
+    },
+    "karcigar": {
+      "n": 53,
+      "abstain": 0.7924528301886793,
+      "karar_known": 52,
+      "abstain_karar_known": 0.7735849056603774,
+      "top1_unique_with_1_comma_tolerance": null,
+      "western_top": [
+        [
+          "G major",
+          24
+        ],
+        [
+          "D major",
+          21
+        ],
+        [
+          "A minor",
+          5
+        ]
+      ]
+    }
+  }
+}

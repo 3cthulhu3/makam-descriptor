@@ -15,7 +15,7 @@ from .symbtr import Note
 COMMAS = 53
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, eq=False)
 class Measurement:
     karar_koma53: int
     karar_pc: int
@@ -32,6 +32,8 @@ class MeasurementError(ValueError):
 def measure(notes: tuple[Note, ...] | list[Note]) -> Measurement:
     if not notes:
         raise MeasurementError("no pitched notes")
+    if any(not (n.duration > 0) for n in notes):      # also rejects NaN
+        raise MeasurementError("every note needs a positive duration")
     karar = notes[-1].koma53
     karar_pc = karar % COMMAS
     abs_hist = np.zeros(COMMAS)
@@ -45,6 +47,8 @@ def measure(notes: tuple[Note, ...] | list[Note]) -> Measurement:
 
 def windows(notes: list[Note] | tuple[Note, ...], length: float, hop: float):
     """Yield (start, end, notes) windows by cumulative duration (for geçki, Phase 1)."""
+    if length <= 0 or hop <= 0:
+        raise ValueError("length and hop must be positive")
     t, onsets = 0.0, []
     for n in notes:
         onsets.append(t)
