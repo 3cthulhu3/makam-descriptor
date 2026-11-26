@@ -1,5 +1,7 @@
 # Makam Descriptor
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24566127.svg)](https://doi.org/10.5281/zenodo.24566127)
+
 A culture-aware description tool for Turkish makam music, designed to be called by an LLM agent (the MML MIR Supertool). It describes a score in the tradition's own terms, at 53-comma resolution, and says so when a piece falls outside what it knows.
 
 Status: **v0.3, Phase 0.** Scores only (SymbTr `.txt`). Theory layer: 7 makams, AEU, **unreviewed**.
@@ -136,7 +138,9 @@ Consequences:
 - Nihâvend's eviç and bûselik's nîm zirgüle are declared as variants without a direction. On dev they depart upward in 69 % and 80 % of their duration, as leading tones would. Should they be declared ascending? (Not done: it would be a theory edit driven by the data it is evaluated on.)
 - `seyir` is recorded as ascending for hicâz and as both for bûselik; common descriptions differ. Not used yet, but should be right before Phase 1 uses it.
 - The three `descending_acem` variants and the two leading-tone variants are as unreviewed as the rest.
+## Citing
 
+Archived on Zenodo. To cite the software in general, use the concept DOI [10.5281/zenodo.24566127](https://doi.org/10.5281/zenodo.24566127), which always resolves to the latest version. To cite the exact version behind the figures above, use v0.3.0: [10.5281/zenodo.24566128](https://doi.org/10.5281/zenodo.24566128). GitHub's "Cite this repository" button gives APA and BibTeX from `CITATION.cff`.
 ## Licence
 
 Code: Apache-2.0. Data read at runtime (SymbTr) keeps its own licence.
