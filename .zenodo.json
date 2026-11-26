@@ -1,0 +1,43 @@
+{
+  "title": "Makam Descriptor: a culture-aware, abstaining description tool for Turkish makam music scores",
+  "upload_type": "software",
+  "description": "<p>A description tool for Turkish makam music, designed to be called by an LLM agent. It describes a symbolic score (SymbTr <code>.txt</code>) in the tradition's own terms, at 53-comma resolution, and abstains when a piece falls outside what its theory layer knows.</p><p>The tool has three layers: a <b>theory</b> layer (makams composed from cins, Arel-Ezgi-Uzdilek system, 7 makams, not yet reviewed by a theory expert), a <b>measurement</b> layer (karar from the final note, duration-weighted 53-bin pitch distribution relative to it, split by melodic direction), and a <b>consistency</b> layer (ranking by exact comma positions on the dizi; abstention at a coverage threshold of 0.90, fixed before the first run and never tuned). A Krumhansl-Kessler key-profile baseline on the 53-to-12 projection is included for comparison. The tool has no fitted parameters.</p><p>Evaluation uses SymbTr 2.4.3 (not included; CC BY-NC-SA), split by composer into dev (1604) and test (596) scores. On the held-out test split, v0.3 names the right makam for 85.6 % of known-makam pieces and names a wrong makam without any ambiguity flag for 1.7 %; it flags 76.5 % of pieces from the nine most frequent makams outside its theory (AUROC 0.921). Abstention works for makams whose scale is new to the theory; makams that share a dizi with a known makam and differ only in seyir (e.g. muhayyer, bayati) are not detected. Full results, ablations and known limits are in the README and the <code>eval/</code> directory.</p>",
+  "creators": [
+    {
+      "name": "d3st1n4"
+    }
+  ],
+  "license": "apache-2.0",
+  "access_right": "open",
+  "language": "eng",
+  "keywords": [
+    "Turkish makam music",
+    "music information retrieval",
+    "computational musicology",
+    "makam recognition",
+    "abstention",
+    "selective prediction",
+    "out-of-distribution detection",
+    "53-TET",
+    "Arel-Ezgi-Uzdilek",
+    "SymbTr",
+    "LLM tool calling"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "https://github.com/3cthulhu3/makam-descriptor",
+      "relation": "isSupplementTo",
+      "resource_type": "software"
+    },
+    {
+      "identifier": "https://github.com/MTG/SymbTr",
+      "relation": "requires",
+      "resource_type": "dataset"
+    }
+  ],
+  "references": [
+    "Karaosmanoğlu, M. K. (2012). A Turkish makam music symbolic database for music information retrieval: SymbTr. In Proceedings of the 13th International Society for Music Information Retrieval Conference (ISMIR), Porto.",
+    "Krumhansl, C. L., & Kessler, E. J. (1982). Tracing the dynamic changes in perceived tonal organization in a spatial representation of musical keys. Psychological Review, 89(4), 334-368."
+  ],
+  "notes": "Theory layer status: postulated, unreviewed. Results are on scores only; audio is planned for a later phase. SymbTr data is read at runtime and keeps its own licence (CC BY-NC-SA)."
+}
