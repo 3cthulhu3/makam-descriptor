@@ -11,6 +11,15 @@ abstract: >-
 authors:
   - alias: "d3st1n4"
 version: "0.3.0"
+date-released: 2026-11-26
+doi: 10.5281/zenodo.24566127
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.24566127
+    description: "Concept DOI: all versions, resolves to the latest"
+  - type: doi
+    value: 10.5281/zenodo.24566128
+    description: "Version DOI: v0.3.0"
 license: Apache-2.0
 repository-code: "https://github.com/3cthulhu3/makam-descriptor"
 keywords:
