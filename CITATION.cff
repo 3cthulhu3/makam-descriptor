@@ -1,0 +1,37 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it using the metadata below."
+type: software
+title: "Makam Descriptor: a culture-aware, abstaining description tool for Turkish makam music scores"
+abstract: >-
+  A description tool for Turkish makam music, designed to be called by an LLM
+  agent. It describes a SymbTr score in the tradition's own terms at 53-comma
+  resolution and abstains when a piece falls outside what its theory layer
+  knows. Theory layer: 7 makams, Arel-Ezgi-Uzdilek system, unreviewed.
+  Evaluated on SymbTr 2.4.3 with a composer-level dev/test split.
+authors:
+  - alias: "d3st1n4"
+version: "0.3.0"
+license: Apache-2.0
+repository-code: "https://github.com/3cthulhu3/makam-descriptor"
+keywords:
+  - Turkish makam music
+  - music information retrieval
+  - computational musicology
+  - makam recognition
+  - abstention
+  - 53-TET
+  - SymbTr
+references:
+  - type: conference-paper
+    title: "A Turkish makam music symbolic database for music information retrieval: SymbTr"
+    authors:
+      - family-names: "Karaosmanoğlu"
+        given-names: "M. Kemal"
+    year: 2012
+    collection-title: "Proceedings of the 13th International Society for Music Information Retrieval Conference (ISMIR)"
+  - type: dataset
+    title: "SymbTr"
+    authors:
+      - name: "Music Technology Group, Universitat Pompeu Fabra"
+    repository-code: "https://github.com/MTG/SymbTr"
+    version: "2.4.3"
